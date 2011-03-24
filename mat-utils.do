@@ -70,8 +70,6 @@ SaveVce
     end
 
 
-
-
 	capture program drop usecoef
 	program define usecoef
 		local mname="`1'"
