@@ -215,3 +215,91 @@ end
       }
       l `varlist' if _n==`i', nod 
    end
+
+
+
+capture program drop AddToDate
+program define AddToDate
+
+   syntax varname(numeric) [, Years(integer 0) Months(integer 0) Days(integer 0) Generate(string) replace]
+   qui {
+
+        if "`generate'" != "" & "`replace'" != "" {
+                di as err "{p}options generate and replace are mutually exclusive{p_end}"
+                exit 198
+        }
+        if "`generate'" == "" & "`replace'" == "" {
+                di as err "{p}must specify either generate or replace option{p_end}"
+                exit 198
+        }
+        local DATEVAR `varlist'
+        
+        if "`generate'" != "" {
+                local ct1: word count `generate'
+                if `ct1' != 1 {
+                        di as err "{p}number of variables in generate(newvarlist) must be 1{p_end}"
+                        exit 198
+                }
+                local NEWVAR `generate'
+        }
+        else {
+		capture drop _`DATEVAR'
+        	local NEWVAR _`DATEVAR'
+        }
+        
+        
+*   args DATEVAR NEWVAR YEARS MONTHS DAYS 
+   	tempvar DD1 MM1 YY1  DD2 MM2 YY2 
+	if "`years'"~="" {
+		local YEARS=`years'	
+	}
+	else {
+		local YEARS=0
+	}
+	if "`months'"~="" {
+		local MONTHS=`months'	
+	}
+	else {
+		local MONTHS=0
+	}
+	if "`days'"~="" {
+		local DAYS=`days'	
+	}
+	else {
+		local DAYS=0
+	}
+
+   	capture gen `NEWVAR'=`DATEVAR'
+   	replace `NEWVAR'=`DATEVAR' + `DAYS' if real("`DAYS'")~=.
+   	gen `DD2'=day(`NEWVAR')
+   	gen `MM1'=month(`NEWVAR')
+   	gen `YY1'=year(`NEWVAR')
+
+	* add days, months years to integers 
+   	gen `MM2'=`MM1' 
+   	replace `MM2'=`MM2'+real("`MONTHS'") if real("`MONTHS'")~=.
+   	gen `YY2'=`YY1' 
+   	replace `YY2'=`YY2'+real("`YEARS'") if real("`YEARS'")~=.
+   	
+   	* update years depending on months 
+   	replace `YY2'=`YY2' + int(`MM2'/12) if `MM2'>12
+   	replace `MM2'=`MM2' - 12*int(`MM2'/12) if `MM2'>12
+   	
+   	replace `YY2'=`YY2' - abs(int(`MM2'/12)+1) if `MM2'<=0
+   	replace `MM2'=`MM2' + 12*abs(int(`MM2'/12)+1) if `MM2'<=0
+
+	*account for fewer days in some months -- replace with last day
+	replace `DD2'=min(`DD2',day(mdy(`MM2'+1,1,`YY2')-1))
+
+   	*l `DATEVAR' `DD1' `MM1' `YY1' `DD2' `MM2' `YY2' 
+        if "`replace'" != "" { 
+	   	replace `DATEVAR'=mdy(`MM2',`DD2',`YY2')
+	}
+	else {
+		replace `NEWVAR'=mdy(`MM2',`DD2',`YY2')
+		format `NEWVAR' %dD_m_cY
+	}
+   }
+   
+end
+
