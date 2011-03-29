@@ -30,27 +30,27 @@
 
 capture program drop RAW
 program define RAW
-	capture use "C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\raw\cmb_`1'", clear
+	capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_`1'", clear
 	if _rc~=0 {
-		dir C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\raw\cmb_*.dta
+		dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_*.dta
 		di _n(1) in r "`1' not found, see above for available derived files."
 	}
 end
 
 capture program drop DRV
 program define DRV
-	capture use "C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\drv\child\\`1'", clear
+	capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\child\\`1'", clear
 	if _rc~=0 {
-		capture use "C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\drv\caregiver\\`1'", clear
+		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\caregiver\\`1'", clear
 		if _rc~=0 {
-		capture use "C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\drv\location\\`1'", clear
+		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\\`1'", clear
 			if _rc~=0 {
 				di _n(1) "CHILD:"
-				dir C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\drv\child\*.dta
+				dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\child\*.dta
 				di _n(1) "CAREGIVER:"
-				dir C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\drv\caregiver\*.dta
+				dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\caregiver\*.dta
 				di _n(1) "LOCATION:"
-				dir C:\Users\osterman\Documents\Work\Orphans\Analysis\_POFO\Data\drv\location\*.dta
+				dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\*.dta
 				di _n(1) in r "`1' not found, see above for available derived files."
 			}
 		}

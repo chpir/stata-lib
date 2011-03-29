@@ -1,3 +1,15 @@
+/********************************************************
+* Last Modified:  03/29/11, 09:38:44   by Jan Ostermann
+* File Name:      C:\Users\osterman\Documents\Work\stata-lib\var-utils.do
+********************************************************/
+
+capture log c
+log using "var-utils.log", replace
+capture cd ../tmp
+*go "C:\Users\osterman\Documents\Work\stata-lib\var-utils.do"
+
+
+
 /* Variable utilities */
 
 capture program drop DrvLbl
@@ -39,28 +51,59 @@ program define DrvLbls
       di "/// end DrvLbls for: `vlist'"
 end
 
-capture program drop DescribeStrings
-program define DescribeStrings
-    syntax varname [, Text(string) REPLACE]
+capture program drop vFilter
+program define vFilter
+    syntax varname [, Text(string) GENerate(string) REPLACE UPDATE]
 	*This is to identify occurrences of word stems in string variables,
 	*count them, replace them with blanks and redisplay remainder
 	qui {
-		tempvar temp
-		local `temp'=`varlist'
-		tab `temp'
-		replace `temp'=lower(`temp')
+		tempvar temp out
+		
+		*clean/lowercase  variable
+		gen `temp'=`varlist'
+		replace `temp'=lower(trim(`temp'))
 		replace `temp'=subinstr(`temp',","," ",.)
 		replace `temp'=subinstr(`temp',"."," ",.)
-		gen `varlist'_`text'= 1 if regexm(`temp',"`text'[a-z0-9]*")==1
-		if `replace'~="" {
-			replace `varlist'=`temp'
-			replace `varlist'=regexr(`varlist',"`text'[a-z0-9]*","")
-			replace `varlist'=subinstr(`varlist',"  "," ",.)	
-			tab `varlist', sort
+		replace `temp'=subinstr(`temp',";"," ",.)
+		
+		*flag relevant observations and replace source variable if 'replace' option
+		capture gen `out'=.	
+		foreach X of any `text' {
+			di "`X'"
+			replace `out'= 1 if regexm(`temp',"`X'[a-z0-9]*")==1
+			if "`replace'"~="" {
+				replace `temp'=regexr(`temp',"`X'[a-z0-9]*","")
+				replace `temp'=subinstr(`temp',"  "," ",.)	
+				replace `varlist'=`temp'
+				tab `varlist', sort
+			}
+		}
+		
+		
+		if "`generate'"~="" {
+			capture confirm v `generate'
+			if _rc==0 {
+				if "`update'"=="" {
+					di in r "NOTE: `generate' existed previously - dropped!!!"
+					capture drop `generate'
+					gen `generate'=`out'
+				}
+				else {
+					replace `generate'=`out' if `out'==1
+				}
+			}
+			else {
+				gen `generate'=`out'	
+			}
+			qui count if `generate'==1
+		}
+		else {
+			gen `varlist'_`text=`out'
+			qui count if `varlist'_`text==1
 		}
 	}
-	qui count if `varlist'_`text'==1
 	local i=r(N)
+	qui drop `out' `temp'
 	di in r "`text': `i' occurrences"
 end
 
@@ -170,7 +213,7 @@ end
       global NAllVars: word count $AllVars
       di _n(1) in y "\$AllVars (${NAllVars}):" " $AllVars"
       if "`d'"~="" { 
-      	dd $AllVars
+      	 dd $AllVars
          }
    end
 
