@@ -346,3 +346,20 @@ program define AddToDate
    
 end
 
+
+capture program drop git
+program define git
+	local pwd:pwd 
+	local i=0
+	while `i'==0 & "`pwd'"~="C:\Users\osterman\Documents\" {
+		capture confirm f .git/config
+		if _rc==0 {
+			local i=1	
+		   !"C:\Program Files (x86)\Git\bin\sh.exe" --login -i
+		}
+		else {
+		   cd ..	
+		}
+	}
+   cd "`pwd'"
+end
