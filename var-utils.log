@@ -1,0 +1,406 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\osterman\Documents\Work\stata-lib\var-utils.log
+  log type:  text
+ opened on:  29 Mar 2011, 12:26:44
+
+. capture cd ../tmp
+
+. *go "C:\Users\osterman\Documents\Work\stata-lib\var-utils.do"
+. 
+. 
+. 
+. /* Variable utilities */
+. 
+. capture program drop DrvLbl
+
+. program define DrvLbl
+  1.         label var `1' ">`2'"
+  2. end
+
+. 
+. capture program drop lf
+
+. program define lf
+  1.         lookfor `1'
+  2. end
+
+.  
+. capture program drop DrvLbls
+
+. program define DrvLbls
+  1.       syntax [varlist] [, Prefix(string) Suffix(string) Label(string) ]
+  2.       unab vlist : `varlist'
+  3.       di "/// begin DrvLbls for: `vlist'"
+  4.           foreach X of var `varlist' {
+  5.                  local oldlbl: var l `X'
+  6.                  *use existing label
+.                  if "`label'"=="" {
+  7.                          if substr("`oldlbl'",1,1)==">" {
+  8.                                 local j=">`prefix'" + substr("`oldlbl'",2,80-length("`prefix'`suffix'")) + "`suffix'"
+  9.                                 label var `X' "`j'"     
+ 10.                          }
+ 11.                          else {
+ 12.                                 local j=">`prefix'" + substr("`oldlbl'",1,79-length("`prefix'`suffix'")) + "`suffix'"
+ 13.                                 label var `X' "`j'"     
+ 14.                                 }       
+ 15.                          }
+ 16.                  }
+ 17.                  *new label with >
+.                  else {
+ 18.                         local j=">`prefix'" + substr("`label'",1,79-length("`prefix'`suffix'")) + "`suffix'"
+ 19.                         label var `X' "`j'"     
+ 20.                  }
+ 21.           }
+ 22.       dd `varlist'
+ 23.       di "/// end DrvLbls for: `vlist'"
+ 24. end
+
+. 
+. capture program drop vFilter
+
+. program define vFilter
+  1.     syntax varname [, Text(string) GENerate(string) REPLACE UPDATE]
+  2.         *This is to identify occurrences of word stems in string variables,
+.         *count them, replace them with blanks and redisplay remainder
+.         qui {
+  3.                 tempvar temp out
+  4.                 
+.                 *clean/lowercase  variable
+.                 gen `temp'=`varlist'
+  5.                 replace `temp'=lower(trim(`temp'))
+  6.                 replace `temp'=subinstr(`temp',","," ",.)
+  7.                 replace `temp'=subinstr(`temp',"."," ",.)
+  8.                 replace `temp'=subinstr(`temp',";"," ",.)
+  9.                 
+.                 *flag relevant observations and replace source variable if 'replace' option
+.                 capture gen `out'=.     
+ 10.                 foreach X of any `text' {
+ 11.                         di "`X'"
+ 12.                         replace `out'= 1 if regexm(`temp',"`X'[a-z0-9]*")==1
+ 13.                         if "`replace'"~="" {
+ 14.                                 replace `temp'=regexr(`temp',"`X'[a-z0-9]*","")
+ 15.                                 replace `temp'=subinstr(`temp',"  "," ",.)      
+ 16.                                 replace `varlist'=`temp'
+ 17.                                 tab `varlist', sort
+ 18.                         }
+ 19.                 }
+ 20.                 
+.                 
+.                 if "`generate'"~="" {
+ 21.                         capture confirm v `generate'
+ 22.                         if _rc==0 {
+ 23.                                 if "`update'"=="" {
+ 24.                                         di in r "NOTE: `generate' existed previously - dropped!!!"
+ 25.                                         capture drop `generate'
+ 26.                                         gen `generate'=`out'
+ 27.                                 }
+ 28.                                 else {
+ 29.                                         replace `generate'=`out' if `out'==1
+ 30.                                 }
+ 31.                         }
+ 32.                         else {
+ 33.                                 gen `generate'=`out'    
+ 34.                         }
+ 35.                         qui count if `generate'==1
+ 36.                 }
+ 37.                 else {
+ 38.                         gen `varlist'_`text=`out'
+ 39.                         qui count if `varlist'_`text==1
+ 40.                 }
+ 41.         }
+ 42.         local i=r(N)
+ 43.         qui drop `out' `temp'
+ 44.         di in r "`text': `i' occurrences"
+ 45. end
+
+. 
+. 
+. capture program drop FindNearby
+
+. program define FindNearby
+  1.     syntax varname [, Number(string) ]
+  2.     qui AllVars
+  3.     local i: word count $AllVars
+  4.     foreach X of num 1/`i' {
+  5.         local j: word `X' of $AllVars
+  6.         if "`j'"=="`varlist'" {
+  7.                 local k=`X'
+  8.         }
+  9.     }
+ 10.     if "`number'"=="" {
+ 11.         local number 5
+ 12.     }
+ 13.     local i=`k'-`number'
+ 14.     local j=`k'+`number'
+ 15.     local i: word `i' of $AllVars
+ 16.     local j: word `j' of $AllVars
+ 17.     qui AllVars `i'-`j'
+ 18.     dd $AllVars
+ 19.     di in b "Variable " in r "`varlist'" in b " found in position " in r `k'
+ 20. end
+
+. 
+. 
+. capture program drop ParseIt
+
+. program define ParseIt
+  1.    syntax varname [, NAME(string) Suffix(string) CHAR]
+  2.    tempvar temp
+  3.    qui replace `varlist'=trim(`varlist')
+  4.    local i: format `varlist'
+  5.    local i: subinstr local i "%" "", all
+  6.    local i: subinstr local i "s" "", all  
+  7.    if "`name'" ~="" {
+  8.        local VARNAME `name'
+  9.    }
+ 10.    else if "`suffix'" ~="" {
+ 11.        local VARNAME `varlist'`suffix'
+ 12.    }
+ 13.    else {
+ 14.        local VARNAME `varlist'_
+ 15.    }      
+ 16.    if `i'<1 {
+ 17.        exit 198   
+ 18.    }
+ 19.    else {
+ 20.       di in y "`varlist'  has `i' items; converted to `VARNAME'*"
+ 21.    }
+ 22.    foreach X of num 1/`i' {
+ 23.       capture drop `VARNAME'`X'
+ 24.       qui gen `VARNAME'`X'=substr(`varlist',`X',1)
+ 25.     if "`char'"=="" {
+ 26.        qui destring `VARNAME'`X', replace force
+ 27.     }
+ 28.    }
+ 29.     qui compress
+ 30.    if "`char'"=="" {
+ 31.       sum `VARNAME'*
+ 32.    }
+ 33.    else {
+ 34.       codebook `VARNAME'*
+ 35.    }
+ 36. end
+
+. 
+. 
+.    capture program drop AllVars
+
+.    program define AllVars
+  1.       syntax [varlist] [, Exclude(varlist) CHAR D Label(string)]
+  2.       global AllVars `varlist' 
+  3.       if "`varlist'"~="" { 
+  4.              unab unaball : `varlist'
+  5.       }
+  6.       else { 
+  7.           global AllVars `unabexc' 
+  8.       }
+  9.       if "`exclude'"~="" { 
+ 10.           unab unabexc : `exclude'
+ 11.       }
+ 12.       tokenize `unabexc'
+ 13.       while `"`1'"'!="" {
+ 14.          global AllVars : subinstr global AllVars "`1'" "", word
+ 15.          global AllVars : subinstr global AllVars "  " " ", all
+ 16.          mac shift
+ 17.       }
+ 18.       if "`char'"~="" { 
+ 19.         foreach X of any $AllVars {
+ 20.             local i : type `X'
+ 21.             if substr("`i'",1,3)=="str" { 
+ 22.             local j `j' `X'
+ 23.             }
+ 24.          }
+ 25.          global AllVars `j'
+ 26.       }
+ 27.                 local j
+ 28.       if "`lable'"~="" { 
+ 29.         foreach X of any $AllVars {
+ 30.             local i : variable label `X'
+ 31.             if index(lower("`i'"),lower("`lable'"))>0 { 
+ 32.             local j `j' `X'
+ 33.             }
+ 34.          }
+ 35.          global AllVars `j'
+ 36.       }
+ 37.       global NAllVars: word count $AllVars
+ 38.       di _n(1) in y "\$AllVars (${NAllVars}):" " $AllVars"
+ 39.       if "`d'"~="" { 
+ 40.          dd $AllVars
+ 41.          }
+ 42.    end
+
+. 
+. 
+.    capture program drop WriteTo
+
+.    program define WriteTo
+  1.       syntax [varlist] [, VALues(string) OBS(string) ]
+  2.       if "`varlist'"=="" {
+  3.          qui AllVars
+  4.       }
+  5.       if "`varlist'"~="" {
+  6.          qui AllVars `varlist'
+  7.       }
+  8.       local j: word count `values'
+  9.       if `j'~=$NAllVars {
+ 10.          di in r "unequal number of arguments:" in y " $NAllVars variables vs. `j' values" _n
+ 11.          exit
+ 12.       }
+ 13. 
+.       qui count
+ 14.       local i=r(N)
+ 15.       if "`obs'"=="" { 
+ 16.          local i=`i'+1
+ 17.       }
+ 18.       else {
+ 19.          if `obs'>r(N) { 
+ 20.             set obs `obs'
+ 21.             local i=`obs'
+ 22.          }
+ 23.          if `obs'<=r(N) { local i=`obs' }
+ 24.       }
+ 25.       foreach X of num 1/$NAllVars {
+ 26.          local var: word `X' of $AllVars
+ 27.          local val: word `X' of `values'
+ 28.          local type: type `var'
+ 29.          if substr("`type'",1,3)=="str" {
+ 30.             qui replace `var'="`val'" if _n==`i'
+ 31.          }
+ 32.          else {
+ 33.             qui replace `var'=`val' if _n==`i'
+ 34.          }
+ 35.       }
+ 36.       l `varlist' if _n==`i', nod 
+ 37.    end
+
+. 
+. 
+. 
+. capture program drop AddToDate
+
+. program define AddToDate
+  1. 
+.    syntax varname(numeric) [, Years(integer 0) Months(integer 0) Days(integer 0) Generate(string) replace]
+  2.    qui {
+  3. 
+.         if "`generate'" != "" & "`replace'" != "" {
+  4.                 di as err "{p}options generate and replace are mutually exclusive{p_end}"
+  5.                 exit 198
+  6.         }
+  7.         if "`generate'" == "" & "`replace'" == "" {
+  8.                 di as err "{p}must specify either generate or replace option{p_end}"
+  9.                 exit 198
+ 10.         }
+ 11.         local DATEVAR `varlist'
+ 12.         
+.         if "`generate'" != "" {
+ 13.                 local ct1: word count `generate'
+ 14.                 if `ct1' != 1 {
+ 15.                         di as err "{p}number of variables in generate(newvarlist) must be 1{p_end}"
+ 16.                         exit 198
+ 17.                 }
+ 18.                 local NEWVAR `generate'
+ 19.         }
+ 20.         else {
+ 21.                 capture drop _`DATEVAR'
+ 22.                 local NEWVAR _`DATEVAR'
+ 23.         }
+ 24.         
+.         
+. *   args DATEVAR NEWVAR YEARS MONTHS DAYS 
+.         tempvar DD1 MM1 YY1  DD2 MM2 YY2 
+ 25.         if "`years'"~="" {
+ 26.                 local YEARS=`years'     
+ 27.         }
+ 28.         else {
+ 29.                 local YEARS=0
+ 30.         }
+ 31.         if "`months'"~="" {
+ 32.                 local MONTHS=`months'   
+ 33.         }
+ 34.         else {
+ 35.                 local MONTHS=0
+ 36.         }
+ 37.         if "`days'"~="" {
+ 38.                 local DAYS=`days'       
+ 39.         }
+ 40.         else {
+ 41.                 local DAYS=0
+ 42.         }
+ 43. 
+.         capture gen `NEWVAR'=`DATEVAR'
+ 44.         replace `NEWVAR'=`DATEVAR' + `DAYS' if real("`DAYS'")~=.
+ 45.         gen `DD2'=day(`NEWVAR')
+ 46.         gen `MM1'=month(`NEWVAR')
+ 47.         gen `YY1'=year(`NEWVAR')
+ 48. 
+.         * add days, months years to integers 
+.         gen `MM2'=`MM1' 
+ 49.         replace `MM2'=`MM2'+real("`MONTHS'") if real("`MONTHS'")~=.
+ 50.         gen `YY2'=`YY1' 
+ 51.         replace `YY2'=`YY2'+real("`YEARS'") if real("`YEARS'")~=.
+ 52.         
+.         * update years depending on months 
+.         replace `YY2'=`YY2' + int(`MM2'/12) if `MM2'>12
+ 53.         replace `MM2'=`MM2' - 12*int(`MM2'/12) if `MM2'>12
+ 54.         
+.         replace `YY2'=`YY2' - abs(int(`MM2'/12)+1) if `MM2'<=0
+ 55.         replace `MM2'=`MM2' + 12*abs(int(`MM2'/12)+1) if `MM2'<=0
+ 56. 
+.         *account for fewer days in some months -- replace with last day
+.         replace `DD2'=min(`DD2',day(mdy(`MM2'+1,1,`YY2')-1))
+ 57. 
+.         *l `DATEVAR' `DD1' `MM1' `YY1' `DD2' `MM2' `YY2' 
+.         if "`replace'" != "" { 
+ 58.                 replace `DATEVAR'=mdy(`MM2',`DD2',`YY2')
+ 59.         }
+ 60.         else {
+ 61.                 replace `NEWVAR'=mdy(`MM2',`DD2',`YY2')
+ 62.                 format `NEWVAR' %dD_m_cY
+ 63.         }
+ 64.    }
+ 65.    
+. end
+
+. 
+. 
+. capture program drop git
+
+. program define git
+  1.         local pwd:pwd 
+  2.         local i=0
+  3.         while `i'==0 & "`pwd'"~="C:\Users\osterman\Documents\" {
+  4.                 capture confirm f .git/config
+  5.                 if _rc==0 {
+  6.                         local i=1       
+  7.                    !"C:\Program Files (x86)\Git\bin\sh.exe" --login -i
+  8.                 }
+  9.                 else {
+ 10.                    cd ..        
+ 11.                 }
+ 12.         }
+ 13.    cd "`pwd'"
+ 14. end
+
+. 
+end of do-file
+. pwd
+C:\Users\osterman\Documents\Work\stata-lib
+
+. git
+C:\Users\osterman\Documents\Work\stata-lib
+
+. pwd
+C:\Users\osterman\Documents\Work\stata-lib
+
+. go "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code\Household Support.do"
+C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code
+C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code
+
+. /********************************************************
+> * Last Modified:  09/28/10, 14:03:14   by Jan Ostermann
+> * File Name:      C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code\Household Support.do
+> ********************************************************/
+. 
+. capture log c
