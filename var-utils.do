@@ -9,19 +9,21 @@ capture cd ../tmp
 *go "C:\Users\osterman\Documents\Work\stata-lib\var-utils.do"
 
 
-
-/* Variable utilities */
-
-capture program drop DrvLbl
-program define DrvLbl
-	label var `1' ">`2'"
-end
-
+*short for lookfor 
 capture program drop lf
 program define lf
 	lookfor `1'
 end
  
+
+*Label a derived variable
+capture program drop DrvLbl
+program define DrvLbl
+	label var `1' ">`2'"
+end
+
+ 
+*Label multiple derived variables (note: not fully tested)
 capture program drop DrvLbls
 program define DrvLbls
       syntax [varlist] [, Prefix(string) Suffix(string) Label(string) ]
@@ -51,11 +53,12 @@ program define DrvLbls
       di "/// end DrvLbls for: `vlist'"
 end
 
+
+*This is to identify occurrences of word stems in string variables,
+*count them, replace them with blanks and redisplay remainder
 capture program drop vFilter
 program define vFilter
     syntax varname [, Text(string) GENerate(string) REPLACE UPDATE]
-	*This is to identify occurrences of word stems in string variables,
-	*count them, replace them with blanks and redisplay remainder
 	qui {
 		tempvar temp out
 		
@@ -108,6 +111,7 @@ program define vFilter
 end
 
 
+*looks for a variable in the dataset and lists all nearby variables
 capture program drop FindNearby
 program define FindNearby
     syntax varname [, Number(string) ]
@@ -132,6 +136,7 @@ program define FindNearby
 end
 
 
+*parses a variable into components
 capture program drop ParseIt
 program define ParseIt
    syntax varname [, NAME(string) Suffix(string) CHAR]
@@ -172,6 +177,7 @@ program define ParseIt
 end
 
 
+*the famous AllVars command
    capture program drop AllVars
    program define AllVars
       syntax [varlist] [, Exclude(varlist) CHAR D Label(string)]
@@ -218,6 +224,7 @@ end
    end
 
 
+*write any value to any particular place in the dataset
    capture program drop WriteTo
    program define WriteTo
       syntax [varlist] [, VALues(string) OBS(string) ]
@@ -261,6 +268,7 @@ end
 
 
 
+*add a certain number of days, weeks, months, etc. to a date and come up with the resulting date
 capture program drop AddToDate
 program define AddToDate
 
@@ -347,6 +355,7 @@ program define AddToDate
 end
 
 
+*start a git bash in the nearest (up) directory with a git repository
 capture program drop git
 program define git
 	local pwd:pwd 
