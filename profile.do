@@ -1,7 +1,6 @@
 
-/* defines main parameters */
+/* define main parameters */
 
-   *doedit
    global WHO="Jan"
 
    clear
@@ -10,43 +9,26 @@
    set linesize 220
    capture set mem 100m
 
-   global path C:\Data\
    global qui qui
    global DATA ../../../data/
    global rp restore, preserve
 
 
-	*substitute for "do"
-	capture program drop go
-	program define go
-		args FPATH
-		local i=strpos(reverse("`FPATH'"),"\")
-		if `i'>0 {
-		local PATH=substr("`FPATH'",1,length("`FPATH'")-`i')
-		cd "`PATH'"
-		}
-		do "`FPATH'"
-	end
+	*additional old programs (e.g. addoutpt) in these original files:
+	qui do c:\data\savecoef
+	qui do c:\data\usecoefs
+    qui do c:\data\runttest
 
-
-   *additional programs (e.g. addoutpt) in these original files:
-   qui do $path\savecoef
-   qui do $path\usecoefs
-
-   *program & utilities files for matrices, variables, pofo utilities
-   qui do C:\Users\osterman\Documents\Work\stata-lib\mat-utils
-   qui do C:\Users\osterman\Documents\Work\stata-lib\var-utils
-   qui do C:\Users\osterman\Documents\Work\stata-lib\pofo-utils
+	
+	*program & utilities files for matrices, variables, pofo utilities
+	qui do C:\Users\osterman\Documents\Work\stata-lib\mat-utils
+	qui do C:\Users\osterman\Documents\Work\stata-lib\var-utils
+	qui do C:\Users\osterman\Documents\Work\stata-lib\file-utils
+	qui do C:\Users\osterman\Documents\Work\stata-lib\pofo-utils
    
 
-   capture program drop New
-   program define New
-      local i: pwd
-      winexec "C:\Program Files (x86)\Stata11\Stata-64.exe"
-		*      winexec C:\Progra~1\Stata11\Stata-64.exe cd "`i'"
-   end
 
-   qui do $path\runttest
+
 
 
 /* 
@@ -55,7 +37,7 @@ EX:  use childmaster,clear
  		 MakeDate dob
  		 MakeDateRange dob
  
- Note: We edited this based from the 5/6/09 version. Now need to add
+ Note: We edited this based on the 5/6/09 version. Now need to add
  the following to and dob programs and make a similar range for DOD.
  
  replace dod_est=. if !inrange(year(dod_est),1992,2008)
@@ -478,34 +460,3 @@ end
 
 
 
-
-
-        /* insert here a piece that limits the output to 3 significant digits 
-        local m=1
-        gen temp=0
-        global x: word 1 of $depvars
-        gen str12 $x=""
-        while `m'<=_N {
-           replace $x=round($x,1)           if _n==`m'   & $x[`m'+1]>=100 
-           replace $x=round($x,1)           if _n==`m'+1 & $x[`m'+1]>=100 
-           replace $x=round($x,0.1)         if _n==`m'   & $x[`m'+1]>=10        & $x[`m'+1]<100 
-           replace $x=round($x,0.1)         if _n==`m'+1 & $x[`m'+1]>=10        & $x[`m'+1]<100 
-           replace $x=round($x,0.01)        if _n==`m'   & $x[`m'+1]>=1         & $x[`m'+1]<10 
-           replace $x=round($x,0.01)        if _n==`m'+1 & $x[`m'+1]>=1         & $x[`m'+1]<10 
-           replace $x=round($x,0.001)       if _n==`m'   & $x[`m'+1]>=0.1       & $x[`m'+1]<1 
-           replace $x=round($x,0.001)       if _n==`m'+1 & $x[`m'+1]>=0.1       & $x[`m'+1]<1 
-           replace $x=round($x,0.0001)      if _n==`m'   & $x[`m'+1]>=0.01      & $x[`m'+1]<0.1 
-           replace $x=round($x,0.0001)      if _n==`m'+1 & $x[`m'+1]>=0.01      & $x[`m'+1]<0.1 
-           replace $x=round($x,0.00001)     if _n==`m'   & $x[`m'+1]>=0.001     & $x[`m'+1]<0.01 
-           replace $x=round($x,0.00001)     if _n==`m'+1 & $x[`m'+1]>=0.001     & $x[`m'+1]<0.01 
-           replace $x=round($x,0.000001)    if _n==`m'   & $x[`m'+1]>=0.0001    & $x[`m'+1]<0.001 
-           replace $x=round($x,0.000001)    if _n==`m'+1 & $x[`m'+1]>=0.0001    & $x[`m'+1]<0.001 
-           replace $x=round($x,0.0000001)   if _n==`m'   & $x[`m'+1]>=0.00001   & $x[`m'+1]<0.0001 
-           replace $x=round($x,0.0000001)   if _n==`m'+1 & $x[`m'+1]>=0.00001   & $x[`m'+1]<0.0001 
-           replace $x=round($x,0.00000001)  if _n==`m'   & $x[`m'+1]>=0.000001  & $x[`m'+1]<0.00001 
-           replace $x=round($x,0.00000001)  if _n==`m'+1 & $x[`m'+1]>=0.000001  & $x[`m'+1]<0.00001 
-           replace $x=round($x,0.000000001) if _n==`m'   & $x[`m'+1]>=0.0000001 & $x[`m'+1]<0.000001 
-           replace $x=round($x,0.000000001) if _n==`m'+1 & $x[`m'+1]>=0.0000001 & $x[`m'+1]<0.000001 
-           local m=`m'+1
-        }
-        end of a piece that limits the output to 3 significant digits */

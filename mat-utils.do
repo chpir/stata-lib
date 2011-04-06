@@ -158,31 +158,31 @@ SaveVce
 
 
 
-capture program drop UseMat
-program define UseMat
-	local mname="`1'"
-	preserve
-		qui insheet using `1'.out, clear
-		qui AllVars
-		local NAMEVAR: word 1 of $AllVars
-		qui AllVars, e(`NAMEVAR')
-		
-		mkmat $AllVars, mat(`mname')
-		local i = 1
-		qui count
-		local N = r(N)    
-		while `i' <=`N' {
-		        local hold = `NAMEVAR' in `i'
-		        local blah "`blah' `hold'"
-		        local i = `i' +1
-		        }
-		*noi di "-blah- consists of |`blah'|"
-		matname `mname' `blah', row(1...) explicit
-		mat l `mname'
-		*mat `mname' = `mname'
-		global matvars `blah'
-	restore
-end 
+	capture program drop UseMat
+	program define UseMat
+		local mname="`1'"
+		preserve
+			qui insheet using `1'.out, clear
+			qui AllVars
+			local NAMEVAR: word 1 of $AllVars
+			qui AllVars, e(`NAMEVAR')
+			
+			mkmat $AllVars, mat(`mname')
+			local i = 1
+			qui count
+			local N = r(N)    
+			while `i' <=`N' {
+			        local hold = `NAMEVAR' in `i'
+			        local blah "`blah' `hold'"
+			        local i = `i' +1
+			        }
+			*noi di "-blah- consists of |`blah'|"
+			matname `mname' `blah', row(1...) explicit
+			mat l `mname'
+			*mat `mname' = `mname'
+			global matvars `blah'
+		restore
+	end 
 
 
 

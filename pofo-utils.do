@@ -28,197 +28,194 @@
 
 
 
-capture program drop RAW
-program define RAW
-	capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_`1'", clear
-	if _rc~=0 {
-		dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_*.dta
-		di _n(1) in r "`1' not found, see above for available derived files."
-	}
-end
-
-capture program drop DRV
-program define DRV
-	capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\child\\`1'", clear
-	if _rc~=0 {
-		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\caregiver\\`1'", clear
+	capture program drop RAW
+	program define RAW
+		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_`1'", clear
 		if _rc~=0 {
-		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\\`1'", clear
+			dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_*.dta
+			di _n(1) in r "`1' not found, see above for available derived files."
+		}
+	end
+	
+	capture program drop DRV
+	program define DRV
+		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\child\\`1'", clear
+		if _rc~=0 {
+			capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\caregiver\\`1'", clear
 			if _rc~=0 {
-				di _n(1) "CHILD:"
-				dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\child\*.dta
-				di _n(1) "CAREGIVER:"
-				dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\caregiver\*.dta
-				di _n(1) "LOCATION:"
-				dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\*.dta
-				di _n(1) in r "`1' not found, see above for available derived files."
+			capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\\`1'", clear
+				if _rc~=0 {
+					di _n(1) "CHILD:"
+					dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\child\*.dta
+					di _n(1) "CAREGIVER:"
+					dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\caregiver\*.dta
+					di _n(1) "LOCATION:"
+					dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\*.dta
+					di _n(1) in r "`1' not found, see above for available derived files."
+				}
 			}
 		}
-	}
-		
-end
+			
+	end
 
-capture program drop dbChoice
-program define dbChoice
-   syntax [, Double Original Combined Permanent RESET]
-   if "`reset'"~="" {
-      global DB_permanent=""
-   }
-   if "`double'"~="" | "`original'"~="" | "`combined'"~="" {
-	   if "`double'"~="" {
-              global DBL="dbl_"
-	      local text="Double Data Entry "
-	   }
-	   if "`original'"~="" {
-	      global DBL=""
-	      local text="Original Data Entry "
-	   }
-	   if "`combined'"~="" {
-              global DBL="cmb_"
-	      local text="Combined - Original and Double Data Entry "
-	   }
-	   if "`permanent'"~="" | "$DB_permanent"=="1" {
-	      global DB_permanent=1
-	      local text2 = "(permanently)"
-	   }
-	   else {
+	capture program drop dbChoice
+	program define dbChoice
+	   syntax [, Double Original Combined Permanent RESET]
+	   if "`reset'"~="" {
 	      global DB_permanent=""
 	   }
-   }   
-   if "`double'"=="" & "`original'"=="" & "`combined'"=="" {
-   	   *global DB_permanent=""
-	   if "$DB_permanent"~="1" {
-		global WinText "Select:"
-		window control static  WinText 10 5 40 10
-		window control button "Original" 10 15 37 10 DB_original 
-		window control button "Double" 52 15 37 10 DB_double 
-		window control button "Combined" 94 15 37 10 DB_combined 
-		window control check "Permanently" 52 5 60 7 DB_permanent
-		global DB_combined "exit 3002"
-		global DB_original "exit 3001"
-		global DB_double "exit 3000"
-		capture noisily window dialog "Select Database"  400 300 148 43
-		
-		if _rc==3002 {
-		  global DBL="cmb_"
-		  local text="Combined - Original and Double Data Entry "
-		}
-		if _rc==3000 {
-		  global DBL="dbl_"
-		  local text="Double Data Entry "
-		}
-		else
-		if _rc==3001 {
-		  global DBL=""
-		  local text="Original Data Entry "
-		}  
-		if "$DB_permanent"=="1" {
-		  local text2 = "(permanently)"
-		}
+	   if "`double'"~="" | "`original'"~="" | "`combined'"~="" {
+		   if "`double'"~="" {
+	              global DBL="dbl_"
+		      local text="Double Data Entry "
+		   }
+		   if "`original'"~="" {
+		      global DBL=""
+		      local text="Original Data Entry "
+		   }
+		   if "`combined'"~="" {
+	              global DBL="cmb_"
+		      local text="Combined - Original and Double Data Entry "
+		   }
+		   if "`permanent'"~="" | "$DB_permanent"=="1" {
+		      global DB_permanent=1
+		      local text2 = "(permanently)"
+		   }
+		   else {
+		      global DB_permanent=""
+		   }
+	   }   
+	   if "`double'"=="" & "`original'"=="" & "`combined'"=="" {
+	   	   *global DB_permanent=""
+		   if "$DB_permanent"~="1" {
+			global WinText "Select:"
+			window control static  WinText 10 5 40 10
+			window control button "Original" 10 15 37 10 DB_original 
+			window control button "Double" 52 15 37 10 DB_double 
+			window control button "Combined" 94 15 37 10 DB_combined 
+			window control check "Permanently" 52 5 60 7 DB_permanent
+			global DB_combined "exit 3002"
+			global DB_original "exit 3001"
+			global DB_double "exit 3000"
+			capture noisily window dialog "Select Database"  400 300 148 43
+			
+			if _rc==3002 {
+			  global DBL="cmb_"
+			  local text="Combined - Original and Double Data Entry "
+			}
+			if _rc==3000 {
+			  global DBL="dbl_"
+			  local text="Double Data Entry "
+			}
+			else
+			if _rc==3001 {
+			  global DBL=""
+			  local text="Original Data Entry "
+			}  
+			if "$DB_permanent"=="1" {
+			  local text2 = "(permanently)"
+			}
+		   }
+		   else {
+		        if "$DBL" == "dbl_" {
+			  local text="Double Data Entry "
+		        }
+		        else 
+		        if "$DBL" == "cmb_" {
+			  local text="Combined - Original and Double Data Entry "
+		        }
+		        else 
+		        if "$DBL" == "" {
+			  local text="Original Data Entry "
+		        }
+			if "$DB_permanent"=="1" {
+			  local text2 = "(permanently)"
+			}
+		   }
 	   }
-	   else {
-	        if "$DBL" == "dbl_" {
-		  local text="Double Data Entry "
-	        }
-	        else 
-	        if "$DBL" == "cmb_" {
-		  local text="Combined - Original and Double Data Entry "
-	        }
-	        else 
-	        if "$DBL" == "" {
-		  local text="Original Data Entry "
-	        }
-		if "$DB_permanent"=="1" {
-		  local text2 = "(permanently)"
-		}
-	   }
-   }
-   noi di _n(1) in y "  `text'`text2' " _n(1) 
-end
+	   noi di _n(1) in y "  `text'`text2' " _n(1) 
+	end
+
+
+	capture program drop dbReset
+	program define dbReset
+		global DB_permanent
+	end
 
 
 
 
-
-capture program drop dbReset
-program define dbReset
-	global DB_permanent
-end
-
-
-
-
-*NOTE: PROGRAM THAT PRIORITIZES ROUNDS
-capture program drop Prioritize
-program define Prioritize
-	args VAR IDS ROUNDS 
-	*SAMLE: q37 	  "sitestr householdid" "2 0 1 2 3 4 5 6" 
-	*SAMLE: childwork "sitestr code" 	"MAX"
-	*note only numerics right now
-	tempvar r0 r1 r2 r3 r4 r5 r6 rall check1 check2 one
-
-	capture drop fromrounds
-	capture drop tempround
-
-	capture gen tempround=.
-	capture gen fromrounds=""
+	*NOTE: PROGRAM THAT PRIORITIZES ROUNDS
+	capture program drop Prioritize
+	program define Prioritize
+		args VAR IDS ROUNDS 
+		*SAMLE: q37 	  "sitestr householdid" "2 0 1 2 3 4 5 6" 
+		*SAMLE: childwork "sitestr code" 	"MAX"
+		*note only numerics right now
+		tempvar r0 r1 r2 r3 r4 r5 r6 rall check1 check2 one
 	
-	if "`ROUNDS'"=="MAX" {
-		foreach Z of num 0/6 {
+		capture drop fromrounds
+		capture drop tempround
+	
+		capture gen tempround=.
+		capture gen fromrounds=""
+		
+		if "`ROUNDS'"=="MAX" {
+			foreach Z of num 0/6 {
+				preserve
+					qui drop if real(substr(round,-1,1))>`Z'
+					collapse (max) `VAR', by(`IDS')
+					gen round="`Z'"
+					qui save temp`Z', replace
+				restore
+			}
 			preserve
-				qui drop if real(substr(round,-1,1))>`Z'
-				collapse (max) `VAR', by(`IDS')
-				gen round="`Z'"
-				qui save temp`Z', replace
-			restore
+				use temp0, clear
+				foreach Z of num 1/6 {
+					append using temp`Z'
+					erase temp`Z'.dta
+				}
+				ren `VAR' p_`VAR'
+				drop if round==""
+				qui save temp0, replace
+			restore		
+			mmerge `IDS' round using temp0, t(n:1)
+			di in r "Note: self reports included, if available"
+			erase temp0.dta
 		}
-		preserve
-			use temp0, clear
-			foreach Z of num 1/6 {
-				append using temp`Z'
-				erase temp`Z'.dta
+		else {
+			if "`ROUNDS'"=="" {
+				local ROUNDS="0 1 2 3 4 5 6"
 			}
-			ren `VAR' p_`VAR'
-			drop if round==""
-			qui save temp0, replace
-		restore		
-		mmerge `IDS' round using temp0, t(n:1)
-		di in r "Note: self reports included, if available"
-		erase temp0.dta
-	}
-	else {
-		if "`ROUNDS'"=="" {
-			local ROUNDS="0 1 2 3 4 5 6"
+		   	foreach X of num 0/6 {
+		   		capture drop `r`X''
+		   		qui egen `r`X''=max(`VAR'*(round=="`X'")), by(`IDS')
+				qui gen `check1'=1 if round=="`X'" & `VAR'<.
+		   		qui egen `check2'=max(`check1'*(round=="`X'")), by(`IDS')
+		   		qui replace `r`X''=. if `check2'~=1
+				capture drop `check1' `check2'
+				}
+		   	qui gen `rall'=.
+		   	foreach X of any `ROUNDS' {
+		   		qui replace `rall'=`r`X'' if `rall'==. & `r`X''<.
+		   	}
+			capture drop p_`VAR'
+			qui gen p_`VAR'=`rall'
+			sort `IDS' round
+			*browse `IDS' round `VAR' p_`VAR' 
 		}
-	   	foreach X of num 0/6 {
-	   		capture drop `r`X''
-	   		qui egen `r`X''=max(`VAR'*(round=="`X'")), by(`IDS')
-			qui gen `check1'=1 if round=="`X'" & `VAR'<.
-	   		qui egen `check2'=max(`check1'*(round=="`X'")), by(`IDS')
-	   		qui replace `r`X''=. if `check2'~=1
-			capture drop `check1' `check2'
-			}
-	   	qui gen `rall'=.
-	   	foreach X of any `ROUNDS' {
-	   		qui replace `rall'=`r`X'' if `rall'==. & `r`X''<.
-	   	}
-		capture drop p_`VAR'
-		qui gen p_`VAR'=`rall'
-		sort `IDS' round
-		*browse `IDS' round `VAR' p_`VAR' 
-	}
-	foreach Z of num 0/6 {
-		qui replace tempround=`Z' if float(`VAR')==float(p_`VAR') & round=="`Z'"
-	}
-	capture drop `one'
-	gen `one'=1
-   	foreach Z of num 0/6 {
-   		capture drop `r`Z''
-	   	qui egen `r`Z''=max(`one'*(tempround==`Z')), by(`IDS')
-		qui replace fromrounds=fromrounds+"`Z'" if `r`Z''==1
-	}
-	drop tempround
-end
-
+		foreach Z of num 0/6 {
+			qui replace tempround=`Z' if float(`VAR')==float(p_`VAR') & round=="`Z'"
+		}
+		capture drop `one'
+		gen `one'=1
+	   	foreach Z of num 0/6 {
+	   		capture drop `r`Z''
+		   	qui egen `r`Z''=max(`one'*(tempround==`Z')), by(`IDS')
+			qui replace fromrounds=fromrounds+"`Z'" if `r`Z''==1
+		}
+		drop tempround
+	end
+	
 
 

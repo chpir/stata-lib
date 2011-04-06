@@ -2,23 +2,14 @@
       name:  <unnamed>
        log:  C:\Users\osterman\Documents\Work\stata-lib\var-utils.log
   log type:  text
- opened on:  29 Mar 2011, 12:26:44
+ opened on:   6 Apr 2011, 10:35:38
 
 . capture cd ../tmp
 
 . *go "C:\Users\osterman\Documents\Work\stata-lib\var-utils.do"
 . 
 . 
-. 
-. /* Variable utilities */
-. 
-. capture program drop DrvLbl
-
-. program define DrvLbl
-  1.         label var `1' ">`2'"
-  2. end
-
-. 
+. *short for lookfor 
 . capture program drop lf
 
 . program define lf
@@ -26,6 +17,17 @@
   2. end
 
 .  
+. 
+. *Label a derived variable
+. capture program drop DrvLbl
+
+. program define DrvLbl
+  1.         label var `1' ">`2'"
+  2. end
+
+. 
+.  
+. *Label multiple derived variables (note: not fully tested)
 . capture program drop DrvLbls
 
 . program define DrvLbls
@@ -57,13 +59,14 @@
  24. end
 
 . 
+. 
+. *This is to identify occurrences of word stems in string variables,
+. *count them, replace them with blanks and redisplay remainder
 . capture program drop vFilter
 
 . program define vFilter
   1.     syntax varname [, Text(string) GENerate(string) REPLACE UPDATE]
-  2.         *This is to identify occurrences of word stems in string variables,
-.         *count them, replace them with blanks and redisplay remainder
-.         qui {
+  2.         qui {
   3.                 tempvar temp out
   4.                 
 .                 *clean/lowercase  variable
@@ -116,6 +119,7 @@
 
 . 
 . 
+. *looks for a variable in the dataset and lists all nearby variables
 . capture program drop FindNearby
 
 . program define FindNearby
@@ -142,6 +146,7 @@
 
 . 
 . 
+. *parses a variable into components
 . capture program drop ParseIt
 
 . program define ParseIt
@@ -184,6 +189,7 @@
 
 . 
 . 
+. *the famous AllVars command
 .    capture program drop AllVars
 
 .    program define AllVars
@@ -232,6 +238,7 @@
 
 . 
 . 
+. *write any value to any particular place in the dataset
 .    capture program drop WriteTo
 
 .    program define WriteTo
@@ -277,6 +284,7 @@
 . 
 . 
 . 
+. *add a certain number of days, weeks, months, etc. to a date and come up with the resulting date
 . capture program drop AddToDate
 
 . program define AddToDate
@@ -365,42 +373,5 @@
 
 . 
 . 
-. capture program drop git
-
-. program define git
-  1.         local pwd:pwd 
-  2.         local i=0
-  3.         while `i'==0 & "`pwd'"~="C:\Users\osterman\Documents\" {
-  4.                 capture confirm f .git/config
-  5.                 if _rc==0 {
-  6.                         local i=1       
-  7.                    !"C:\Program Files (x86)\Git\bin\sh.exe" --login -i
-  8.                 }
-  9.                 else {
- 10.                    cd ..        
- 11.                 }
- 12.         }
- 13.    cd "`pwd'"
- 14. end
-
 . 
 end of do-file
-. pwd
-C:\Users\osterman\Documents\Work\stata-lib
-
-. git
-C:\Users\osterman\Documents\Work\stata-lib
-
-. pwd
-C:\Users\osterman\Documents\Work\stata-lib
-
-. go "C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code\Household Support.do"
-C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code
-C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code
-
-. /********************************************************
-> * Last Modified:  09/28/10, 14:03:14   by Jan Ostermann
-> * File Name:      C:\Users\osterman\Documents\Work\Projects\POFO\Data\drv\location\_code\Household Support.do
-> ********************************************************/
-. 
-. capture log c
