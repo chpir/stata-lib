@@ -1,3 +1,14 @@
+/********************************************************
+* Last Modified:  04/07/11, 10:21:15   by Jan Ostermann
+* File Name:      C:\Users\osterman\Documents\Work\stata-lib\pofo-utils.do
+********************************************************/
+
+capture log c
+log using "pofo-utils.log", replace
+capture cd ../tmp
+*go "C:\Users\osterman\Documents\Work\stata-lib\pofo-utils.do"
+
+
 /* Utilities specifically developed for POFO */
 
 
@@ -30,10 +41,19 @@
 
 	capture program drop RAW
 	program define RAW
-		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_`1'", clear
+		if "`2'"=="" {
+			local what cmb
+		}
+		else if lower("`2'")=="ode" {
+			local what pofov3original
+		}
+		else if lower("`2'")=="dde" {
+			local what pofov3dde
+		}
+		capture use "C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\\`what'_`1'", clear
 		if _rc~=0 {
-			dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\cmb_*.dta
-			di _n(1) in r "`1' not found, see above for available derived files."
+			dir C:\Users\osterman\Documents\Work\Projects\POFO\Data\raw\\`what'_*.dta
+			di _n(1) in r "`1' not found, see above for available raw data files."
 		}
 	end
 	

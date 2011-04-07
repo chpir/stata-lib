@@ -375,3 +375,15 @@
 . 
 . 
 end of do-file
+. git
+C:\Users\osterman\Documents\Work\stata-lib
+
+. go "C:\Users\osterman\Documents\Work\Projects\POFO\Analyses\Household Support\code\Household Support - Analysis.do"
+C:\Users\osterman\Documents\Work\Projects\POFO\Analyses\Household Support\code
+
+. /********************************************************
+> * Last Modified:  03/25/11, 14:31:17   by Jan Ostermann
+> * File Name:      C:\Users\osterman\Documents\Work\Projects\POFO\Analyses\Household Support\code\Household Support - Analysis.do
+> ********************************************************/
+. 
+. capture log c
