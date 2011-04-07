@@ -34,7 +34,6 @@ capture cd ../tmp
 	program define New
 	  local i: pwd
 	  winexec "C:\Program Files (x86)\Stata11\Stata-64.exe"
-		*      winexec C:\Progra~1\Stata11\Stata-64.exe cd "`i'"
 	end
 
 
@@ -43,8 +42,13 @@ capture cd ../tmp
 	program define go
 		args FPATH
 		local i=strpos(reverse("`FPATH'"),"\")
-		if `i'>0 {
-		local PATH=substr("`FPATH'",1,length("`FPATH'")-`i')
+		local j=strpos(reverse("`FPATH'"),"/")
+		local k=min(`i',`j')
+		if `k'==0 {
+			local k=max(`i',`j')
+		}
+		if `k'>0 {
+		local PATH=substr("`FPATH'",1,length("`FPATH'")-`k')
 		cd "`PATH'"
 		}
 		do "`FPATH'"
